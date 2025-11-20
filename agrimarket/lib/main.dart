@@ -1,6 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'firebase_options.dart';
+import 'screens/auth/signup.dart';
+import 'screens/auth/signin.dart';
+import 'screens/home_farmer.dart';
+import 'screens/home_buyer.dart';
+import 'screens/farmer/my_products.dart';
+import 'screens/farmer/add_product.dart';
+import 'screens/farmer/orders.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // On Linux desktop the native Firebase plugins may not be available in this
+  // build. To avoid crashing the app during development on Linux, skip
+  // initializing Firebase here and run the app without Firebase features.
+  // For full Firebase support on desktop, configure the desktop plugins
+  // via FlutterFire CLI or add the platform implementations and re-run.
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.linux) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      // ignore: avoid_print
+      print(
+        'Firebase initialized in main for platform: ${DefaultFirebaseOptions.currentPlatform.projectId}',
+      );
+      // ignore: avoid_print
+      print('Firebase apps count: ${Firebase.apps.length}');
+    } catch (e, s) {
+      // ignore: avoid_print
+      print('Firebase initialize failed in main: $e');
+      // ignore: avoid_print
+      print(s);
+    }
+  } else {
+    // Running on Linux desktop without native Firebase plugin registration.
+    // Log a message so the developer knows Firebase is disabled on this run.
+    // ignore: avoid_print
+    print(
+      'Firebase initialization skipped on Linux desktop (no native plugin).',
+    );
+  }
   runApp(const MyApp());
 }
 
@@ -11,6 +53,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -28,9 +71,18 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      routes: {
+        '/signup': (context) => const SignupPage(),
+        '/signin': (context) => const SigninPage(),
+        '/home_farmer': (context) => const HomeFarmer(),
+        '/home_buyer': (context) => const HomeBuyer(),
+        '/my_products': (context) => const MyProductsScreen(),
+        '/add_product': (context) => const AddProductScreen(),
+        '/orders': (context) => const OrdersScreen(),
+      },
+      home: const SigninPage(),
     );
   }
 }
@@ -108,6 +160,11 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, '/signup'),
+              child: const Text('Farmer Sign Up'),
             ),
           ],
         ),
